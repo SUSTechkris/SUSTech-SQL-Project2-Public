@@ -19,10 +19,10 @@ public interface CourseService {
      * @param credit the credit of course
      * @param classHour The total teaching hour that the course spends.
      * @param grading the grading type of course
-     * @param coursePrerequisite The root node of prerequisite.{@link cn.edu.sustech.cs307.dto.prerequisite.Prerequisite}
+     * @param prerequisite The root of a {@link cn.edu.sustech.cs307.dto.prerequisite.Prerequisite} expression tree.
      */
     void addCourse(String courseId, String courseName, int credit, int classHour,
-                   Course.CourseGrading grading, @Nullable Prerequisite coursePrerequisite);
+                   Course.CourseGrading grading, @Nullable Prerequisite prerequisite);
 
     /**
      * Add one course section according to following parameters:
@@ -41,9 +41,7 @@ public interface CourseService {
      * Add one course section class according to following parameters:
      * If some of parameters are invalid, throw {@link cn.edu.sustech.cs307.exception.IntegrityViolationException}
      *
-     * In this method, the id of added courseSection can be generated automatically.
-     *
-     * @param courseId  the id of Course
+     * @param sectionId
      * @param instructorId
      * @param dayOfWeek
      * @param weekList
@@ -52,7 +50,7 @@ public interface CourseService {
      * @param location
      * @return the CourseSectionClass id of new inserted line.
      */
-    int addCourseSectionClass(int courseId, int instructorId, DayOfWeek dayOfWeek,List<Short> weekList,
+    int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, List<Short> weekList,
                               short classStart, short classEnd, String location);
 
 
@@ -82,6 +80,7 @@ public interface CourseService {
      */
     void removeCourseSectionClass(int classId);
 
+    List<Course> getAllCourses();
     /**
      * Return all satisfied CourseSections.
      * We will compare the all other fields in CourseSection besides the id.
@@ -89,6 +88,7 @@ public interface CourseService {
      * @param semesterId
      * @return
      */
+
     List<CourseSection> getCourseSectionsInSemester(String courseId, int semesterId);
 
     /**
