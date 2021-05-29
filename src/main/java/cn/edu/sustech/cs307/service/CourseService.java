@@ -81,11 +81,12 @@ public interface CourseService {
     void removeCourseSectionClass(int classId);
 
     List<Course> getAllCourses();
+
     /**
      * Return all satisfied CourseSections.
      * We will compare the all other fields in CourseSection besides the id.
      * @param courseId if the key is non-existent, please throw an EntityNotFoundException.
-     * @param semesterId
+     * @param semesterId if the key is non-existent, please throw an EntityNotFoundException.
      * @return
      */
 
