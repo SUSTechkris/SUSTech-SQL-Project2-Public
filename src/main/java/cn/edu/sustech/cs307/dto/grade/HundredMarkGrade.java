@@ -1,19 +1,23 @@
 package cn.edu.sustech.cs307.dto.grade;
 
-public final class HundredMarkGrade implements Grade {
+public final class HundredMarkGrade implements Grade
+{
     public final short mark;
 
-    public HundredMarkGrade(short mark) {
+    public HundredMarkGrade(short mark)
+    {
         this.mark = mark;
     }
 
     @Override
-    public <R> R when(Cases<R> cases) {
+    public <R> R when(Cases<R> cases)
+    {
         return cases.match(this);
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -23,7 +27,8 @@ public final class HundredMarkGrade implements Grade {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return mark;
     }
 }

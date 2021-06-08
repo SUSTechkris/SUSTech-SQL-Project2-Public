@@ -6,7 +6,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public interface MajorService {
+public interface MajorService
+{
     int addMajor(String name, int departmentId);
 
     /**

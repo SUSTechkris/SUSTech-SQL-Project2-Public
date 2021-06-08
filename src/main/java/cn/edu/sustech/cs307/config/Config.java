@@ -5,11 +5,15 @@ import cn.edu.sustech.cs307.factory.ServiceFactory;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-public final class Config {
+//读取配置文件
+public final class Config
+{
     private static final Properties properties = new Properties();
 
-    static {
-        try {
+    static
+    {
+        try
+        {
             properties.load(new FileInputStream("config.properties"));
         } catch (Exception e) {
             e.printStackTrace();

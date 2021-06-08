@@ -10,28 +10,35 @@ import java.util.Objects;
  * the terms in {@code AndPrerequisite}/{@code OrPrerequisite} can be either
  * implementation of {@code Prerequisite}.
  */
-public class CoursePrerequisite implements Prerequisite {
+public class CoursePrerequisite implements Prerequisite
+{
     public final String courseID;
 
-    public CoursePrerequisite(@Nonnull String courseID) {
+    public CoursePrerequisite(@Nonnull String courseID)
+    {
         this.courseID = courseID;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object o)
+    {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         CoursePrerequisite that = (CoursePrerequisite) o;
         return courseID.equals(that.courseID);
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(courseID);
     }
 
     @Override
-    public <R> R when(Cases<R> cases) {
+    public <R> R when(Cases<R> cases)
+    {
         return cases.match(this);
     }
 }

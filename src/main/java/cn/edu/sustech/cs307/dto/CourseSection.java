@@ -2,7 +2,8 @@ package cn.edu.sustech.cs307.dto;
 
 import java.util.Objects;
 
-public class CourseSection {
+public class CourseSection
+{
     /**
      *For example it can represent the id of section "No.1 Chinese class of database principle"
      */
@@ -14,11 +15,14 @@ public class CourseSection {
     public int totalCapacity, leftCapacity;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass())
+        {
             return false;
         }
         CourseSection section = (CourseSection) o;
@@ -27,7 +31,8 @@ public class CourseSection {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(id, name, totalCapacity, leftCapacity);
     }
 }

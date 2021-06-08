@@ -6,7 +6,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PrerequisiteTest {
+public class PrerequisiteTest
+{
     @Test
     public void testTransformation() {
         Prerequisite calculus = new OrPrerequisite(List.of(

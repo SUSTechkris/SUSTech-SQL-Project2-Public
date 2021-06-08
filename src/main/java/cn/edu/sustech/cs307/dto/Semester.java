@@ -5,7 +5,8 @@ import java.sql.Date;
 /**
  * In our benchmark, there won't be overlapped semesters.
  */
-public class Semester {
+public class Semester
+{
     public int id;
     public String name;
     /**

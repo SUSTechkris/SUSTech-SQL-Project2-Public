@@ -7,7 +7,8 @@ import java.sql.Date;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public interface SemesterService {
+public interface SemesterService
+{
     /**
      * Add one semester according to following parameters:
      * If some of parameters are invalid, throw {@link cn.edu.sustech.cs307.exception.IntegrityViolationException}

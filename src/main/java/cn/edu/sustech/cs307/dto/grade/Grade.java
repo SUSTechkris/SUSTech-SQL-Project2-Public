@@ -5,9 +5,11 @@ package cn.edu.sustech.cs307.dto.grade;
  * {@link cn.edu.sustech.cs307.dto.grade.PassOrFailGrade},
  * {@link cn.edu.sustech.cs307.dto.grade.HundredMarkGrade}.
  */
-public interface Grade {
+public interface Grade
+{
     /** Visitor of {@code Grade} */
-    interface Cases<R> {
+    interface Cases<R>
+    {
         R match(PassOrFailGrade self);
 
         R match(HundredMarkGrade self);

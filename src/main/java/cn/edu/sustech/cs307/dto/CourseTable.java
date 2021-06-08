@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 
-public class CourseTable {
-    public static class CourseTableEntry {
+public class CourseTable
+{
+    public static class CourseTableEntry
+    {
         /**
          * Course full name: String.format("%s[%s]", course.name, section.name)
          */

@@ -2,8 +2,10 @@ package cn.edu.sustech.cs307.dto;
 
 import java.util.Objects;
 
-public class Course {
-    public enum CourseGrading {
+public class Course
+{
+    public enum CourseGrading
+    {
         PASS_OR_FAIL, HUNDRED_MARK_SCORE
     }
 
@@ -16,11 +18,14 @@ public class Course {
     public CourseGrading grading;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass())
+        {
             return false;
         }
         Course course = (Course) o;
@@ -29,7 +34,8 @@ public class Course {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(id, name, credit, classHour, grading);
     }
 }

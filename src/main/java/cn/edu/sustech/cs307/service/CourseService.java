@@ -14,6 +14,9 @@ public interface CourseService {
      * Add one course according to following parameters.
      * If some of parameters are invalid, throw {@link cn.edu.sustech.cs307.exception.IntegrityViolationException}
      *
+     * In this method, the id of added courseSection can be generated automatically.
+     *
+     *
      * @param courseId represents the id of course. For example, CS307, CS309
      * @param courseName the name of course
      * @param credit the credit of course

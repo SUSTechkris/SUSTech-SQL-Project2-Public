@@ -2,7 +2,8 @@ package cn.edu.sustech.cs307.dto;
 
 import java.util.List;
 
-public class CourseSearchEntry {
+public class CourseSearchEntry
+{
     /**
      * The course of the searched section
      */

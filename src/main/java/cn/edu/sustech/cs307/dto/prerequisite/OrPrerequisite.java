@@ -10,7 +10,8 @@ import java.util.Objects;
  * This prerequisite expression is fulfilled if and only if any elements of
  * {@code terms} is fulfilled.
  */
-public class OrPrerequisite implements Prerequisite {
+public class OrPrerequisite implements Prerequisite
+{
     public final List<Prerequisite> terms;
 
     public OrPrerequisite(@Nonnull List<Prerequisite> terms) {
@@ -26,12 +27,14 @@ public class OrPrerequisite implements Prerequisite {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(terms);
     }
 
     @Override
-    public <R> R when(Cases<R> cases) {
+    public <R> R when(Cases<R> cases)
+    {
         return cases.match(this);
     }
 }

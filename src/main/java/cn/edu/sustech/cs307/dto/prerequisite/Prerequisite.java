@@ -8,11 +8,13 @@ package cn.edu.sustech.cs307.dto.prerequisite;
  * {@link cn.edu.sustech.cs307.dto.prerequisite.OrPrerequisite},
  * {@link cn.edu.sustech.cs307.dto.prerequisite.CoursePrerequisite}.
  */
-public interface Prerequisite {
+public interface Prerequisite
+{
     /**
      * Visitor of {@code Prerequisite}.
      */
-    interface Cases<R> {
+    interface Cases<R>
+    {
         R match(AndPrerequisite self);
 
         R match(OrPrerequisite self);

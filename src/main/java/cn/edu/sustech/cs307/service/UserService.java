@@ -6,7 +6,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public interface UserService {
+public interface UserService
+{
     void removeUser(int userId);
 
     List<User> getAllUsers();

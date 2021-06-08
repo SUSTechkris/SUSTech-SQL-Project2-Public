@@ -6,7 +6,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public interface DepartmentService {
+public interface DepartmentService
+{
     /**
      *  if adding a new department which has the same name with an existing department,
      *  it should throw an {@code IntegrityViolationException}
