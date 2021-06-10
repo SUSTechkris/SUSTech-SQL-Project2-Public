@@ -82,8 +82,8 @@ public class DepartmentServiceImplement implements DepartmentService
                 department.name = resultSet.getString("departmentname");
                 departments.add(department);
             }
-            if(count == 0)
-                throw new EntityNotFoundException();
+//            if(count == 0)
+//                throw new EntityNotFoundException();
         }
         catch (SQLException e)
         {

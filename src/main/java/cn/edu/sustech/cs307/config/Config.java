@@ -25,7 +25,7 @@ public final class Config
             return (ServiceFactory) Class.forName(properties.getProperty("serviceFactory"))
                     .getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 

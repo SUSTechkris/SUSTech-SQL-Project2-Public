@@ -43,7 +43,7 @@ public class UserServiceImplement implements UserService
     public List<User> getAllUsers()
     {
         List<User> users = new ArrayList<>();
-        String sql1 = "select s.studentId as studentid, s.fullname as fullname, s.enrolledDate as enrolleddate, " +
+        String sql1 = "select s.studentId as studentid, s.firstname as firstname, s.lastname as lastname , s.enrolledDate as enrolleddate, " +
                 "m.majorId as majorid, m.name as majorname, d.id as departmentid, d.name as departmentname\n" +
                 "from student s join major m on m.majorId = s.major join department d on d.id = m.department";
         String sql2 = "select * from instructor";
@@ -56,7 +56,18 @@ public class UserServiceImplement implements UserService
             {
                 Student student = new Student();
                 student.id = resultSet1.getInt("studentid");
-                student.fullName = resultSet1.getString("fullname");
+
+                String firstname = resultSet1.getString("firstname");
+                String lastname = resultSet1.getString("lastname");
+                String fullname = "";
+                if((int)firstname.toCharArray()[0] >= 65 && (int)firstname.toCharArray()[0] <= 90
+                        ||(int)firstname.toCharArray()[0] >= 97 && (int)firstname.toCharArray()[0] <= 122)
+                    fullname = firstname + " " + lastname;
+                else
+                    fullname = firstname + lastname;
+
+                student.fullName = fullname;
+                //student.fullName = resultSet1.getString("fullname");
                 student.enrolledDate = resultSet1.getDate("enrolleddate");
                 student.major = new Major();
                 student.major.id = resultSet1.getInt("majorid");
@@ -72,7 +83,18 @@ public class UserServiceImplement implements UserService
             {
                 Instructor instructor = new Instructor();
                 instructor.id = resultSet2.getInt("instructorid");
-                instructor.fullName = resultSet2.getString("fullname");
+
+                String firstname = resultSet1.getString("firstname");
+                String lastname = resultSet1.getString("lastname");
+                String fullname = "";
+                if((int)firstname.toCharArray()[0] >= 65 && (int)firstname.toCharArray()[0] <= 90
+                        ||(int)firstname.toCharArray()[0] >= 97 && (int)firstname.toCharArray()[0] <= 122)
+                    fullname = firstname + " " + lastname;
+                else
+                    fullname = firstname + lastname;
+
+                instructor.fullName = fullname;
+                //instructor.fullName = resultSet2.getString("fullname");
                 users.add(instructor);
             }
         }

@@ -20,6 +20,7 @@ import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.SplittableRandom;
 
 @ParametersAreNonnullByDefault
@@ -94,7 +95,7 @@ public class CourseServiceImplement implements CourseService
 
 
     @Override
-    public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, List<Short> weekList,
+    public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList,
                                      short classStart, short classEnd, String location)
     {
         String sql1 = "select * from coursesection where sectionid = ?;";
@@ -111,11 +112,17 @@ public class CourseServiceImplement implements CourseService
             if(!resultSet.next())
                 throw new IntegrityViolationException();
             Integer[] new_weeklist = new Integer[weekList.size()];
-            for (int i = 0; i < weekList.size(); i++)
+            int i = 0;
+            for (short a : weekList)
             {
-                int a = weekList.get(i);
-                new_weeklist[i] = a;
+                new_weeklist[i] = (int)a;
+                i++;
             }
+//            for (int i = 0; i < weekList.size(); i++)
+//            {
+//                int a = weekList.get(i);
+//                new_weeklist[i] = a;
+//            }
 
             stmt.setInt(1, sectionId);
             stmt.setInt(2, instructorId);
