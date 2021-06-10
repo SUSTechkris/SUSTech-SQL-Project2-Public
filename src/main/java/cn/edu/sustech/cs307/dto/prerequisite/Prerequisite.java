@@ -1,5 +1,7 @@
 package cn.edu.sustech.cs307.dto.prerequisite;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * Represents the prerequisites of a course.
  * <p>
@@ -8,13 +10,12 @@ package cn.edu.sustech.cs307.dto.prerequisite;
  * {@link cn.edu.sustech.cs307.dto.prerequisite.OrPrerequisite},
  * {@link cn.edu.sustech.cs307.dto.prerequisite.CoursePrerequisite}.
  */
-public interface Prerequisite
-{
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+public interface Prerequisite {
     /**
      * Visitor of {@code Prerequisite}.
      */
-    interface Cases<R>
-    {
+    interface Cases<R> {
         R match(AndPrerequisite self);
 
         R match(OrPrerequisite self);
