@@ -28,14 +28,18 @@ public class MajorServiceImplement implements MajorService
         {
             stmt1.setString(1, name);
             stmt1.setInt(2, departmentId);
+
             ResultSet resultSet = stmt1.executeQuery();
+            if(resultSet.next())
+                throw new IntegrityViolationException();
+
             stmt2.setString(1, name);
             stmt2.setInt(2, departmentId);
             stmt2.executeUpdate();
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
         return number;
     }
@@ -61,7 +65,7 @@ public class MajorServiceImplement implements MajorService
         }
         catch (SQLException e)
         {
-            throw new EntityNotFoundException();
+            e.printStackTrace();
         }
     }
 

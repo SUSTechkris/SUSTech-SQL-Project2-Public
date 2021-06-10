@@ -22,20 +22,33 @@ public class DepartmentServiceImplement implements DepartmentService
     {
         String sql1 = "select d.id as number from department d where d.name = ?;";
         String sql2 = "insert into department(name) values (?)";
+        String sql3 = "select d.id as id from department d where name = ?";
+        int number = 0;
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
-            PreparedStatement stmt2 = connection.prepareStatement(sql2))
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);
+            PreparedStatement stmt3 = connection.prepareStatement(sql3))
         {
+            stmt1.setString(1, name);
+            ResultSet resultSet = stmt1.executeQuery();
+            if(resultSet.next())
+                throw new IntegrityViolationException();
             //stmt1.setString(1, name);
             //ResultSet resultSet = stmt1.executeQuery();
             stmt2.setString(1, name);
             stmt2.executeUpdate();
+
+            stmt3.setString(1, name);
+            ResultSet resultSet1 = stmt3.executeQuery();
+            resultSet1.next();
+            number = resultSet1.getInt("id");
+
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
-        return 0;
+        return number;
     }
 
     //wyfwyfwyf
