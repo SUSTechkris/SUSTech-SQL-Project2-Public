@@ -38,6 +38,7 @@ public class DepartmentServiceImplement implements DepartmentService
         return 0;
     }
 
+    //wyfwyfwyf
     @Override
     public void removeDepartment(int departmentId)
     {
