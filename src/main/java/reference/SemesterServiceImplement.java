@@ -18,18 +18,26 @@ public class SemesterServiceImplement implements SemesterService
         String sql1 = "select s.id from semester s where s.name = ? and s.beginTime = ? and s.endTime = ?;";
         String sql2 = "insert into semester(name, begintime, endtime)"
                 + "values(?,?,?)";
+        String sql3 = "select max(s.id) as semesterid from semester s;";
         int number = 0;
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
-            PreparedStatement stmt2 = connection.prepareStatement(sql2))
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);
+            PreparedStatement stmt3 = connection.prepareStatement(sql3))
         {
             stmt2.setString(1, name);
             stmt2.setDate(2, begin);
             stmt2.setDate(3, end);
+            stmt2.executeUpdate();
+
+            ResultSet resultSet = stmt3.executeQuery();
+            resultSet.next();
+            number = resultSet.getInt("semesterid");
+
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
         return number;
     }

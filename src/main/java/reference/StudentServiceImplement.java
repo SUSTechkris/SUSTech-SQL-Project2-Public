@@ -27,22 +27,25 @@ public class StudentServiceImplement implements StudentService
     @Override
     public void addStudent(int userId, int majorId, String firstName, String lastName, Date enrolledDate)
     {
-        char[] chararray = firstName.toCharArray();
-        String full_name = " ";
-        if(chararray[0] > 64 && chararray[0] < 91 || chararray[0] > 96 && chararray[0] < 123)
-            full_name = firstName + " " + lastName;
-        else
-            full_name = firstName + lastName;
-        String sql = "insert into student(studentId, majorId, name, enrolledDate)"
-                + "values(?,?,?,?)";
+        String sql = "insert into users(userid, character) values (?,?)";
+        String sql1 = "insert into student(studentId, major, firstname, lastname, enrolledDate)"
+                + "values(?,?,?,?,?)";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            PreparedStatement stmt = connection.prepareStatement(sql))
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            PreparedStatement stmt1 = connection.prepareStatement(sql1))
         {
             stmt.setInt(1, userId);
-            stmt.setInt(2, majorId);
-            stmt.setString(3, full_name);
-            stmt.setString(4, enrolledDate.toString());
+            stmt.setInt(2, 2);
             stmt.executeUpdate();
+
+
+            stmt1.setInt(1, userId);
+            stmt1.setInt(2, majorId);
+            stmt1.setString(3, firstName);
+            stmt1.setString(4, lastName);
+            stmt1.setDate(5, enrolledDate);
+
+            stmt1.executeUpdate();
             //return EnrollResult.SUCCESS;
         }catch (SQLException e)
         {
@@ -134,6 +137,25 @@ public class StudentServiceImplement implements StudentService
     @Override
     public Map<Course, Grade> getEnrolledCoursesAndGrades(int studentId, @Nullable Integer semesterId)
     {
+//        String sql1 = "select * from coursesectionclass where classid = ?";
+//        String sql2 = "delete from coursesectionclass where courseid = ?;";
+//        try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
+//            PreparedStatement stmt1 = connection.prepareStatement(sql1);
+//            PreparedStatement stmt2 = connection.prepareStatement(sql2))
+//        {
+//            stmt1.setInt(1, classId);
+//            ResultSet resultSet = stmt1.executeQuery();
+//
+//            if(!resultSet.next())
+//                throw new EntityNotFoundException();
+//
+//            stmt2.setInt(1, classId);
+//            stmt2.executeUpdate();
+//        }
+//        catch (SQLException e)
+//        {
+//            throw new EntityNotFoundException();
+//        }
         return null;
     }
 

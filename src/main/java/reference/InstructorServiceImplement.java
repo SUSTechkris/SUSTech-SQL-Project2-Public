@@ -20,12 +20,19 @@ public class InstructorServiceImplement implements InstructorService
     @Override
     public void addInstructor(int userId, String firstName, String lastName)
     {
+        String sql = "select * from instructor where instructorid = ? ";
         String sql1 = "insert into users(userid, character) values (?, 1)";
         String sql2 = "insert into instructor(instructorid, firstname, lastname) values (?,?,?);";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(sql);
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
             PreparedStatement stmt2 = connection.prepareStatement(sql2))
         {
+            stmt.setInt(1, userId);
+            ResultSet resultSet = stmt.executeQuery();
+            if(resultSet.next())
+                throw new IntegrityViolationException();
+
             stmt1.setInt(1, userId);
             stmt1.executeUpdate();
 

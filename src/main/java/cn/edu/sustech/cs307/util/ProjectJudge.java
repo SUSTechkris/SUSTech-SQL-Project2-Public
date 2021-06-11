@@ -223,34 +223,34 @@ public final class ProjectJudge {
         System.out.println("Import majors");
         importer.importMajors(majors);
 
-//        System.out.println("Import users");
-//        importer.importUsers(users);
-//
-//        System.out.println("Import semesters");
-//        importer.importSemesters(semesters);
-//
-//        System.out.println("Import courses");
-//        importer.importCourses(courses, coursePrerequisites);
-//
-//        System.out.println("Import sections");
-//        importer.importCourseSection(sections);
-//
-//        System.out.println("Import classes");
-//        importer.importCourseSectionClasses(classes);
-//
-//        System.out.println("Import major courses");
-//        importer.importMajorCompulsoryCourses(majorCompulsoryCourses);
-//
-//        importer.importMajorElectiveCourses(majorElectiveCourses);
-//
-//        endTimeNs = System.nanoTime();
-//        System.out.printf("Import time usage: %.2fs\n", (endTimeNs - startTimeNs) / 1000000000.0);
+        System.out.println("Import users");
+        importer.importUsers(users);
+
+        System.out.println("Import semesters");
+        importer.importSemesters(semesters);
+
+        System.out.println("Import courses");
+        importer.importCourses(courses, coursePrerequisites);
+
+        System.out.println("Import sections");
+        importer.importCourseSection(sections);
+
+        System.out.println("Import classes");
+        importer.importCourseSectionClasses(classes);
+
+        System.out.println("Import major courses");
+        importer.importMajorCompulsoryCourses(majorCompulsoryCourses);
+
+        importer.importMajorElectiveCourses(majorElectiveCourses);
+
+        endTimeNs = System.nanoTime();
+        System.out.printf("Import time usage: %.2fs\n", (endTimeNs - startTimeNs) / 1000000000.0);
 
 
-//        // 2. Test searchCourse1
-//        EvalResult searchCourse1 = testSearchCourses(searchCourse1Dir);
-//        System.out.println("Test search course 1: " + searchCourse1.passCount.get());
-//        System.out.printf("Test search course 1 time: %.2fs\n", searchCourse1.elapsedTimeNs.get() / 1000000000.0);
+        // 2. Test searchCourse1
+        EvalResult searchCourse1 = testSearchCourses(searchCourse1Dir);
+        System.out.println("Test search course 1: " + searchCourse1.passCount.get());
+        System.out.printf("Test search course 1 time: %.2fs\n", searchCourse1.elapsedTimeNs.get() / 1000000000.0);
 //
 //
 //        // 3. Test enrollCourse1

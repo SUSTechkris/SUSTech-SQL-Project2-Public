@@ -32,8 +32,7 @@ public class CourseServiceImplement implements CourseService
                           Course.CourseGrading grading, @Nullable Prerequisite prerequisite)
     {
         String sql1 = "select coalesce(max(index), 0) as number from prerequisite ";
-//        if(prerequisite != null)
-//            constructPrere(prerequisite);
+
         String sql = "insert into course(courseid, coursehour, credit, name, grading)"
                 + "values(?,?,?,?,?)";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
@@ -45,8 +44,7 @@ public class CourseServiceImplement implements CourseService
             resultSet.next();
             number = resultSet.getInt("number");
 
-            if(prerequisite != null)
-                constructPrere(prerequisite, number + 1, courseId);
+
             stmt.setString(1, courseId);
             stmt.setInt(2, classHour);
             stmt.setInt(3, credit);
@@ -56,6 +54,9 @@ public class CourseServiceImplement implements CourseService
             else
                 stmt.setInt(5,2);
             stmt.executeUpdate();
+
+            if(prerequisite != null)
+                constructPrere(prerequisite, number + 1, courseId);
         }
         catch (SQLException e)
         {
@@ -65,42 +66,65 @@ public class CourseServiceImplement implements CourseService
 
 
     @Override
-    public int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity)
+    public synchronized int addCourseSection(String courseId, int semesterId, String sectionName, int totalCapacity)
     {
+        String sql = "insert into coursesection (courseid, semesterid, name, totalcapacity, leftcapacity) values (?,?,?,?,?) returning sectionid;";
         String sql1 = "select * from course where courseid = ?";
-        String sql = "insert into coursesection (courseid, semesterid, name, totalcapacity, leftcapacity) values (?,?,?,?,?);";
+        String sql2 = "select max(cs.sectionid) as sectionid from coursesection cs";
+        String sql3 = "select cs.sectionid as sectionid from coursesection cs where cs.courseid = ? and cs.semesterid = ? and cs.name = ? and cs.totalcapacity = ?";
+
+        int number = 0;
+
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt = connection.prepareStatement(sql);
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
-            PreparedStatement stmt = connection.prepareStatement(sql))
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);
+            PreparedStatement stmt3 = connection.prepareStatement(sql3))
         {
+            stmt3.setString(1, courseId);
+            stmt3.setInt(2, semesterId);
+            stmt3.setString(3, sectionName);
+            stmt3.setInt(4, totalCapacity);
+
+            ResultSet resultSet3 = stmt3.executeQuery();
+            if(resultSet3.next())
+                throw new IntegrityViolationException();
+
             stmt1.setString(1, courseId);
 
-            ResultSet resultSet = stmt1.executeQuery();
-            if(!resultSet.next())
-                throw new IntegrityViolationException();
+            ResultSet resultSet1 = stmt1.executeQuery();
+            if(!resultSet1.next())
+                throw new EntityNotFoundException();
 
             stmt.setString(1, courseId);
             stmt.setInt(2, semesterId);
             stmt.setString(3, sectionName);
             stmt.setInt(4, totalCapacity);
             stmt.setInt(5, totalCapacity);
-            stmt.executeUpdate();
+
+            ResultSet resultSet = stmt.executeQuery();
+            resultSet.next();
+            number = resultSet.getInt("sectionid");
+
+            ResultSet resultSet2 = stmt2.executeQuery();
+            resultSet2.next();
+            //number = resultSet1.getInt("sectionid");
         }
         catch (SQLException e)
         {
             e.printStackTrace();
         }
-        return 0;
+        return number;
     }
 
 
     @Override
-    public int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList,
+    public synchronized int addCourseSectionClass(int sectionId, int instructorId, DayOfWeek dayOfWeek, Set<Short> weekList,
                                      short classStart, short classEnd, String location)
     {
         String sql1 = "select * from coursesection where sectionid = ?;";
         String sql = "insert into coursesectionclass (sectionid, instructorId, dayOfweek, " +
-                "weekList, classStart, classEnd, location) " +
+                "weekList, classbegin, classEnd, location) " +
                 "values (?,?,?,?,?,?,?);";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
@@ -111,7 +135,9 @@ public class CourseServiceImplement implements CourseService
 
             if(!resultSet.next())
                 throw new IntegrityViolationException();
+
             Integer[] new_weeklist = new Integer[weekList.size()];
+
             int i = 0;
             for (short a : weekList)
             {
@@ -128,15 +154,15 @@ public class CourseServiceImplement implements CourseService
             stmt.setInt(2, instructorId);
             stmt.setString(3, dayOfWeek.toString());
             stmt.setArray(4, connection.createArrayOf("integer", new_weeklist));
-            stmt.setInt(5, classStart);
-            stmt.setInt(6, classEnd);
+            stmt.setInt(5, (int)classStart);
+            stmt.setInt(6, (int)classEnd);
             stmt.setString(7, location);
 
             stmt.executeUpdate();
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
         return 0;
     }

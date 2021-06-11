@@ -6,6 +6,7 @@ import cn.edu.sustech.cs307.dto.Major;
 import cn.edu.sustech.cs307.exception.EntityNotFoundException;
 import cn.edu.sustech.cs307.exception.IntegrityViolationException;
 import cn.edu.sustech.cs307.service.MajorService;
+import io.netty.channel.epoll.EpollTcpInfo;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,10 +22,12 @@ public class MajorServiceImplement implements MajorService
     {
         String sql1 = "select m.majorid from major m where m.name = ? and m.department = ?;";
         String sql2 = "insert into major (name, department) values (?,?);";
+        String sql3 = "select m.majorid as majorid from major m where m.name = ? and m.department = ?";
         int number = 0;
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
-            PreparedStatement stmt2 = connection.prepareStatement(sql2))
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);
+            PreparedStatement stmt3 = connection.prepareStatement(sql3))
         {
             stmt1.setString(1, name);
             stmt1.setInt(2, departmentId);
@@ -36,6 +39,12 @@ public class MajorServiceImplement implements MajorService
             stmt2.setString(1, name);
             stmt2.setInt(2, departmentId);
             stmt2.executeUpdate();
+
+            stmt3.setString(1, name);
+            stmt3.setInt(2, departmentId);
+            ResultSet resultSet1 = stmt3.executeQuery();
+            resultSet1.next();
+            number = resultSet1.getInt("majorid");
         }
         catch (SQLException e)
         {
@@ -135,35 +144,47 @@ public class MajorServiceImplement implements MajorService
             PreparedStatement stmt2 = connection.prepareStatement(sql2))
         {
             stmt1.setInt(1, majorId);
-            stmt2.setString(2, courseId);
+            stmt1.setString(2, courseId);
             ResultSet resultSet = stmt1.executeQuery();
+            if(resultSet.next())
+                throw new IntegrityViolationException();
 
             stmt2.setString(1, courseId);
             stmt2.setInt(2, majorId);
             stmt2.setInt(3, 0);
+            //0代表必修课
             stmt2.executeUpdate();
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
     }
 
     @Override
     public void addMajorElectiveCourse(int majorId, String courseId)
     {
-        String sql = "insert into course_with_major (courseid, majorid, coursetypeinmajor) values (?,?,?)";
+        String sql1 = "select coursetypeinmajor from course_with_major cm where cm.majorid = ? and cm.courseid = ?";
+        String sql2 = "insert into course_with_major (courseid, majorid, coursetypeinmajor) values (?,?,?)";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
-            PreparedStatement stmt = connection.prepareStatement(sql))
+            PreparedStatement stmt1 = connection.prepareStatement(sql1);
+            PreparedStatement stmt2 = connection.prepareStatement(sql2))
         {
-            stmt.setString(1, courseId);
-            stmt.setInt(2, majorId);
-            stmt.setInt(3, 1);
-            stmt.executeUpdate();
+            stmt1.setInt(1, majorId);
+            stmt1.setString(2, courseId);
+            ResultSet resultSet = stmt1.executeQuery();
+            if(resultSet.next())
+                throw new IntegrityViolationException();
+
+            stmt2.setString(1, courseId);
+            stmt2.setInt(2, majorId);
+            stmt2.setInt(3, 1);
+            //1代表选修课
+            stmt2.executeUpdate();
         }
         catch (SQLException e)
         {
-            throw new IntegrityViolationException();
+            e.printStackTrace();
         }
     }
 }
