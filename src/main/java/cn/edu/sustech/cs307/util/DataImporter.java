@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class DataImporter {
+    public static int count = 0;
     private final ServiceFactory serviceFactory = Config.getServiceFactory();
 
     private final Map<Integer, Integer> sectionIdMap = new ConcurrentHashMap<>();
@@ -119,7 +120,8 @@ public final class DataImporter {
         StudentService studentService = serviceFactory.createService(StudentService.class);
         studentCourses.entrySet().parallelStream().forEach(grades -> {
             int studentId = Integer.parseInt(grades.getKey());
-            grades.getValue().entrySet().parallelStream().forEach(it -> {
+            grades.getValue().entrySet().parallelStream().forEach(it ->
+            {
                 int sectionId = mapSectionId(Integer.parseInt(it.getKey()));
                 studentService.addEnrolledCourseWithGrade(studentId, sectionId, it.getValue());
             });
