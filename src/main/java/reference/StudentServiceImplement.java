@@ -52,6 +52,7 @@ public class StudentServiceImplement implements StudentService
 
     }
 
+
     @Override
     public
     List<CourseSearchEntry>
@@ -65,324 +66,438 @@ public class StudentServiceImplement implements StudentService
                  int pageSize, int pageIndex)
     {
         List<CourseSearchEntry> courseSearchEntries = new ArrayList<>();
-        int[] arr = new int[12];
-        for(int i = 0; i < 12; i++)
+
+        //选出所有entry，再删除
+        String sql1 = "select c.courseid       as courseid,\n" +
+                "       c.name           as courseName,\n" +
+                "       c.credit         as credit,\n" +
+                "       c.courseHour     as courseHour,\n" +
+                "       c.grading        as grading,\n" +
+                "       cs.sectionId     as sectionid,\n" +
+                "       cs.name          as sectionName,\n" +
+                "       cs.totalCapacity as totalCapacity,\n" +
+                "       cs.leftCapacity  as leftCapacity\n" +
+                "from coursesection cs\n" +
+                "         join course c on c.courseid = cs.courseId\n" +
+                "where cs.semesterId = ?";
+
+        String sql2 = "select csc.classId      as classid,\n" +
+                "       csc.instructorId as instructorId,\n" +
+                "       csc.dayOfWeek    as dayOfWeek,\n" +
+                "       csc.weekList     as weekList,\n" +
+                "       csc.classBegin   as classBegin,\n" +
+                "       csc.classEnd     as classEnd,\n" +
+                "       csc.location     as location,\n" +
+                "       i.firstname      as firstname,\n" +
+                "       i.lastname       as lastname\n" +
+                "from courseSectionClass csc\n" +
+                "         join instructor i on i.instructorId = csc.instructorId\n" +
+                "where sectionId = ?;";
+
+        try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
+            PreparedStatement stmt1 = connection.prepareStatement(sql1);
+            PreparedStatement stmt2 = connection.prepareStatement(sql2);)
         {
-            arr[i] = 0;
-        }
-        int pos = 1;
-        String s1 = " ";
-        String s2 = " ";
-        String s3 = " ";
-        String s4 = " ";
-        String s5 = " ";
-        String s6 = " ";
-        String s7 = " ";
-        String s8 = " ";
-        String s9 = " ";
-        String s10 = " ";
-        String s11 = " ";
-        String sql="select * from course c1 " +
-                "join Coursesection c2 " +
-                "on c1.courseid = c2.courseid " +
-                "join coursesectionclass c3 " +
-                "on c2.sectionid = c3.sectionid " +
-                "join prerequisite p " +
-                "on p.courseid = c1.courseid " +
-                "where semesterid = ? ";
-        if(searchCourseType==CourseType.ALL)
-            s1="  ";
-        else if(searchCourseType==CourseType.MAJOR_COMPULSORY){
-            s1=" and c1.courseid in(select cwm.courseid from course_with_major cwm where cwm.majorid in (select stu.major from student stu where stu.studentid=?) and cwm.coursetypeinmajor=0) ";
-            arr[1]=pos+1;
-            pos++;
-        }
-        else if(searchCourseType==CourseType.MAJOR_ELECTIVE){
-            s1=" and c1.courseid in (select cwm.courseid from course_with_major cwm " +
-                    "where cwm.majorid not in (select stu.major from student stu where stu.studentid=?) and cwm.coursetypeinmajor=1) ";
-            arr[1]=pos+1;
-            pos++;
-        }
-        else if(searchCourseType==CourseType.CROSS_MAJOR){
-            s1=" and c1.courseid in (select cwm.courseid from course_with_major cwm " +
-                    "where cwm.majorid not in (select stu.major from student stu where stu.studentid=?)) ";
-            arr[1]=pos+1;
-            pos++;
-        }
-        else if(searchCourseType==CourseType.PUBLIC){
-            s1=" and c1.courseid not in (select cwm.courseid from course_with_major) ";
-        }
-        if(!ignoreFull)
-            s2=" and c2.leftcapacity <> 0 ";
-        ArrayList<Integer> COURSEID=new ArrayList<>();
-        if(!ignoreConflict)
-        {//   !!!!!!!!!!!!!!!!!!!记得补上参数   ！！！  arr  pos   ...
-            String sqlt = "select ccs.dayOfWeek,ccs.weekList,ccs.classBegin,ccs.classBegin,c.name\n" +
-                    "from  student_with_section sc\n" +
-                    "join courseSection cs\n" +
-                    "on cs.sectionid=sc.sectionid\n" +
-                    "join course c\n" +
-                    "on c.courseid=cs.courseId\n" +
-                    "join courseSectionClass ccs\n" +
-                    "on ccs.sectionid=sc.sectionid\n" +
-                    "where sc.studentid=?;";
-
-
-            ArrayList<CourseSectionClass> class_have = new ArrayList<>();
-            try(Connection conn_t = SQLDataSource.getInstance().getSQLConnection();
-                PreparedStatement ps_t = conn_t.prepareStatement(sqlt))
+            stmt1.setInt(1, semesterId);
+            ResultSet resultSet1 = stmt1.executeQuery();
+            while (resultSet1.next())
             {
-                ps_t.setInt(1, studentId);
-                ResultSet rsst = ps_t.executeQuery(sqlt);
-                //int grade=rss_t.getInt("s.grade");
-                while(rsst.next()){
-                    CourseSectionClass courseSectionClass = new CourseSectionClass();
-                    String day = rsst.getString("dayOfWeek");
-                    switch (day) {
-                        case "MONDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.MONDAY;
-                            break;
-                        case "TUESDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.TUESDAY;
-                            break;
-                        case "WEDNESDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.WEDNESDAY;
-                            break;
-                        case "THURSDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.THURSDAY;
-                            break;
-                        case "FRIDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.FRIDAY;
-                            break;
-                        case "SATURDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.SATURDAY;
-                            break;
-                        case "SUNDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.SUNDAY;
-                            break;
-                    }
-                    courseSectionClass.classBegin = rsst.getShort("classBegin");
-                    courseSectionClass.classEnd = rsst.getShort("classEnd");
-                    courseSectionClass.weekList = sql_array_to_set(rsst.getArray("weeklist"));
-                    class_have.add(courseSectionClass);
+                CourseSearchEntry entry = new CourseSearchEntry();
+                entry.course = new Course();
+                entry.course.id = resultSet1.getString("courseid");
+                entry.course.name = resultSet1.getString("courseName");
+                entry.course.credit = resultSet1.getInt("credit");
+                entry.course.classHour = resultSet1.getInt("courseHour");
+                entry.course.grading = Course.CourseGrading.HUNDRED_MARK_SCORE;
+                if(resultSet1.getInt("grading") == 2)
+                    entry.course.grading = Course.CourseGrading.PASS_OR_FAIL;
 
-                }
-            }
-            catch (SQLException et)
-            {
-                et.printStackTrace();
-            }
-            String sqltt="select ccs.dayOfWeek,ccs.weekList,ccs.classBegin,ccs.classBegin,c.name \n" +
-                    "from courseSectionClass ccs\n" +
-                    "join courseSection cs\n" +
-                    "on cs.sectionid=ccs.sectionid\n" +
-                    "join course c\n" +
-                    "on c.courseid=cs.courseId";
+                entry.section = new CourseSection();
+                entry.section.id = resultSet1.getInt("sectionid");
+                entry.section.name = resultSet1.getString("sectionName");
+                entry.section.totalCapacity = resultSet1.getInt("totalCapacity");
+                entry.section.leftCapacity = resultSet1.getInt("leftCapacity");
+                entry.sectionClasses = new HashSet<>();
 
-            ArrayList<CourseSectionClass> class_want = new ArrayList<>();
-            try(Connection conn_tt = SQLDataSource.getInstance().getSQLConnection();
-                PreparedStatement ps_tt = conn_tt.prepareStatement(sqltt))
-            {
-                ResultSet rsstt = ps_tt.executeQuery(sqltt);
-                while(rsstt.next()){
-                    CourseSectionClass courseSectionClass = new CourseSectionClass();
-                    String day = rsstt.getString("dayOfWeek");
-                    switch (day) {
-                        case "MONDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.MONDAY;
-                            break;
-                        case "TUESDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.TUESDAY;
-                            break;
-                        case "WEDNESDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.WEDNESDAY;
-                            break;
-                        case "THURSDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.THURSDAY;
-                            break;
-                        case "FRIDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.FRIDAY;
-                            break;
-                        case "SATURDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.SATURDAY;
-                            break;
-                        case "SUNDAY":
-                            courseSectionClass.dayOfWeek = DayOfWeek.SUNDAY;
-                            break;
-                    }
-                    courseSectionClass.classBegin = rsstt.getShort("classBegin");
-                    courseSectionClass.classEnd = rsstt.getShort("classEnd");
-                    courseSectionClass.weekList = sql_array_to_set(rsstt.getArray("weeklist"));
-                    class_want.add(courseSectionClass);
-                }
-            }
-            catch (SQLException ett)
-            {
-                ett.printStackTrace();
-            }
-            for (CourseSectionClass this_class : class_want)
-                for (CourseSectionClass old_class : class_have)
-                    if(this_class.dayOfWeek.equals(old_class.dayOfWeek))
-                        if(!(this_class.classEnd < old_class.classBegin || old_class.classEnd < this_class.classBegin))
-                            for (Short now : this_class.weekList)
-                                if(old_class.weekList.contains(now))
-                                    COURSEID.add(this_class.id);
-            s3="and c1.name not in (select c.name from  student_with_section sc\n" +
-                    "join courseSection cs\n" +
-                    "on cs.sectionid=sc.sectionid\n" +
-                    "join course c\n" +
-                    "on c.courseid=cs.courseId\n" +
-                    "where sc.studentid=?) and ccs.classId not in (?) ";
-            arr[3]=pos+1;
-            arr[4]=pos+2;
-            pos=pos+2;
-        }
+                stmt2.setInt(1, entry.section.id);
+                ResultSet resultSet2 = stmt2.executeQuery();
 
-        if(!ignorePassed){
-            s4=" and p.courseid not in (select p.courseId from pf_grade p where p.studentid=? and p.grade='PASS'\n" +
-                    "union\n" +
-                    "select m.courseId from mark_grade m where m.studentid=? and m.grade>59) ";
-            arr[5]=pos+1;
-            arr[6]=pos+2;
-            pos=pos+2;
-        }
-
-        if(!ignoreMissingPrerequisites){
-            s5=" and  p.courseid is not null ";
-        }
-
-        if(searchCid!=null){
-            s6=" and c1.courseid=searchCid ";
-        }
-        if(searchName!=null){
-            s7=" and c1.name=searchName ";
-        }
-        if(searchInstructor!=null){
-            s8=" and c3.instructorid in (select ins.instructorid from instructor ins where ins.fullname=searchInstructor) ";
-        }
-        if(searchDayOfWeek==DayOfWeek.SUNDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'SUNDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.MONDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'MONDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.TUESDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'TUESDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.WEDNESDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'WEDNESDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.THURSDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'THURSDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.FRIDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'FRIDAY\') ";
-        else if(searchDayOfWeek==DayOfWeek.SATURDAY)
-            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'SATURDAY\') ";
-        if(searchClassTime!=null){
-            s10=" and c3.courseid in(select cour.courseid from coursesectionclass cour where searchClassTime between cour.classbegin and cour.classend ";
-        }
-        sql=sql+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+") and ( ";
-        if(searchClassLocations!=null){
-            //String st=" ";
-            int cnt=0;
-            int length=searchClassLocations.size();
-            for(String location : searchClassLocations){
-                if(cnt==(length-1)){
-                    sql=sql+" c3.location="+location+" ) ";
-                }
-                else{
-                    sql=sql+" c3.location="+location+" or ";
-                }
-                cnt++;
-            }
-
-        }
-        sql=sql+" order by c1.courseid,c1.name limit ? offset ? ;";
-        try(Connection conn = SQLDataSource.getInstance().getSQLConnection();
-            PreparedStatement ps = conn.prepareStatement(sql))
-        {
-            ps.setInt(1,semesterId);
-            if(arr[1]!=0){
-                ps.setInt(arr[1],studentId);
-            }
-            if(arr[3]!=0)
-            {
-                ps.setInt(arr[3],studentId);
-                Integer[] new_course = new Integer[COURSEID.size()];
-                for (int i = 0; i < new_course.length; i++)
+                while (resultSet2.next())
                 {
-                    new_course[i] = COURSEID.get(i);
-                }
-                ps.setArray(arr[4],conn.createArrayOf("integer", new_course));
-            }
-            ps.setInt(pos+1,pageIndex);
-            ps.setInt(pos+2,pageIndex*pageSize);
-            ResultSet rss = ps.executeQuery();
-            while (rss.next())
-            {
-                CourseSearchEntry courseSearchEntry=new CourseSearchEntry();
-                courseSearchEntry.course.id=rss.getString("courseid");
-                courseSearchEntry.course.classHour = rss.getInt("courseHour");
-                courseSearchEntry.course.credit = rss.getInt("credit");
-                courseSearchEntry.course.name = rss.getString("name");
-                Course.CourseGrading courseGrading = Course.CourseGrading.PASS_OR_FAIL;
-                if(rss.getString("grading").equals("HUNDRED_MARK_SCORE"))
-                    courseGrading = Course.CourseGrading.HUNDRED_MARK_SCORE;
-                courseSearchEntry.course.grading = courseGrading;
+                    CourseSectionClass sectionClass = new CourseSectionClass();
+                    sectionClass.id = resultSet2.getInt("classid");
+                    if(resultSet2.getString("dayOfWeek").equals("MONDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.MONDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("TUESDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.TUESDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("WEDNESDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.WEDNESDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("THURSDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.THURSDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("FRIDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.FRIDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("SATURDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.SATURDAY;
+                    else if(resultSet2.getString("dayOfWeek").equals("SUNDAY"))
+                        sectionClass.dayOfWeek = DayOfWeek.SUNDAY;
 
-                courseSearchEntry.section.id = rss.getInt("sectionid");
-                courseSearchEntry.section.name = rss.getString("name");
-                courseSearchEntry.section.totalCapacity = rss.getInt("totalcapacity");
-                courseSearchEntry.section.leftCapacity = rss.getInt("leftcapacity");
-                String sql2="select * from courseSectionClass cse \n" +
-                        "join instructor i on cse.instructorId = i.instructorId \n" +
-                        "join users u on u.userId=i.instructorId \n" +
-                        "where cse.sectionid=?;";
-                Set<CourseSectionClass> sectionClasses=new HashSet<>();
-                try(Connection conn2 = SQLDataSource.getInstance().getSQLConnection();
-                    PreparedStatement ps2 = conn.prepareStatement(sql2)){
-                    ps2.setInt(1,courseSearchEntry.section.id);
-                    ResultSet rss2 = ps2.executeQuery();
-                    while (rss2.next()){
-                        CourseSectionClass courseSectionClass=new CourseSectionClass();
-                        courseSectionClass.id=rss2.getInt("calssid");
-                        courseSectionClass.instructor.id=rss2.getInt("userid");
-                        courseSectionClass.instructor.fullName=rss2.getString("fullname");
-                        //courseSectionClass.dayOfWeek=rss2.getString("dayofweek");
-                        //courseSectionClass.weekList=rss2.getString("weeklist");
-                        courseSectionClass.classBegin=rss2.getShort("classbegin");
-                        courseSectionClass.classEnd=rss2.getShort("classend");
-                        courseSectionClass.location=rss2.getString("location");
-                        sectionClasses.add(courseSectionClass);
-                    }
-                }
-                catch (SQLException e2)
-                {
-                    e2.printStackTrace();
-                }
-                String sql3="select * from course ";
-                List<String> ConflictCourseNames=new ArrayList<>();
-                try(Connection conn3 = SQLDataSource.getInstance().getSQLConnection();
-                    PreparedStatement ps3 = conn.prepareStatement(sql3)){
-                    ResultSet rss3 = ps3.executeQuery();
-                    while (rss3.next()){
-                        String name;
-                        name=rss3.getString("ConflictCourseNames");
+                    sectionClass.instructor = new Instructor();
+                    String firstname = resultSet2.getString("firstname");
+                    String lastname = resultSet2.getString("lastname");
+                    String fullname = "";
+                    if((int)firstname.toCharArray()[0] >= 65 && (int)firstname.toCharArray()[0] <= 90
+                            ||(int)firstname.toCharArray()[0] >= 97 && (int)firstname.toCharArray()[0] <= 122)
+                        fullname = firstname + " " + lastname;
+                    else
+                        fullname = firstname + lastname;
+                    sectionClass.instructor.id = resultSet2.getInt("instructorId");
+                    sectionClass.instructor.fullName = fullname;
+                    sectionClass.classBegin = (short)(resultSet2.getInt("classBegin"));
+                    sectionClass.classEnd = (short)(resultSet2.getInt("classEnd"));
+                    sectionClass.location = resultSet2.getString("location");
 
-                        ConflictCourseNames.add(name);
+
+                    Integer[] integers = (Integer[])(resultSet2.getArray("weekList").getArray());
+                    Set<Short> weeklist = new HashSet<>();
+                    for (Integer integer : integers)
+                    {
+                        weeklist.add((short)((int)(integer)));
                     }
+                    sectionClass.weekList = weeklist;
+                    entry.sectionClasses.add(sectionClass);
                 }
-                catch (SQLException e3)
-                {
-                    e3.printStackTrace();
-                }
-                courseSearchEntry.sectionClasses=sectionClasses;
-                courseSearchEntry.conflictCourseNames=ConflictCourseNames;
-                courseSearchEntries.add(courseSearchEntry);
+
+                courseSearchEntries.add(entry);
             }
         }
         catch (SQLException e)
         {
             e.printStackTrace();
         }
-        return courseSearchEntries;
+
+        return  courseSearchEntries;
     }
+//    {
+//        List<CourseSearchEntry> courseSearchEntries = new ArrayList<>();
+//        int[] arr = new int[12];
+////        for(int i = 0; i < 12; i++)
+////        {
+////            arr[i] = 0;
+////        }
+//        int pos = 1;
+//        String s1 = " ";
+//        String s2 = " ";
+//        String s3 = " ";
+//        String s4 = " ";
+//        String s5 = " ";
+//        String s6 = " ";
+//        String s7 = " ";
+//        String s8 = " ";
+//        String s9 = " ";
+//        String s10 = " ";
+//        String s11 = " ";
+//        String sql="select * from course c1 " +
+//                "join Coursesection c2 " +
+//                "on c1.courseid = c2.courseid " +
+//                "join coursesectionclass c3 " +
+//                "on c2.sectionid = c3.sectionid " +
+//                "join prerequisite p " +
+//                "on p.courseid = c1.courseid " +
+//                "where semesterid = ? ";
+//        if(searchCourseType == CourseType.ALL)
+//            s1="  ";
+//        else if(searchCourseType == CourseType.MAJOR_COMPULSORY){
+//            s1=" and c1.courseid in(select cwm.courseid from course_with_major cwm where cwm.majorid in (select stu.major from student stu where stu.studentid=?) and cwm.coursetypeinmajor=0) ";
+//            arr[1] = pos+1;
+//            pos++;
+//        }
+//        else if(searchCourseType==CourseType.MAJOR_ELECTIVE){
+//            s1=" and c1.courseid in (select cwm.courseid from course_with_major cwm " +
+//                    "where cwm.majorid not in (select stu.major from student stu where stu.studentid=?) and cwm.coursetypeinmajor=1) ";
+//            arr[1]=pos+1;
+//            pos++;
+//        }
+//        else if(searchCourseType==CourseType.CROSS_MAJOR){
+//            s1=" and c1.courseid in (select cwm.courseid from course_with_major cwm " +
+//                    "where cwm.majorid not in (select stu.major from student stu where stu.studentid=?)) ";
+//            arr[1]=pos+1;
+//            pos++;
+//        }
+//        else if(searchCourseType==CourseType.PUBLIC){
+//            s1=" and c1.courseid not in (select cwm.courseid from course_with_major) ";
+//        }
+//        if(!ignoreFull)
+//            s2=" and c2.leftcapacity <> 0 ";
+//        ArrayList<Integer> COURSEID=new ArrayList<>();
+//        if(!ignoreConflict)
+//        {//   !!!!!!!!!!!!!!!!!!!记得补上参数   ！！！  arr  pos   ...
+//            String sqlt = "select ccs.dayOfWeek,ccs.weekList,ccs.classBegin,ccs.classBegin,c.name\n" +
+//                    "from  student_with_section sc\n" +
+//                    "join courseSection cs\n" +
+//                    "on cs.sectionid=sc.sectionid\n" +
+//                    "join course c\n" +
+//                    "on c.courseid=cs.courseId\n" +
+//                    "join courseSectionClass ccs\n" +
+//                    "on ccs.sectionid=sc.sectionid\n" +
+//                    "where sc.studentid=?;";
+//
+//
+//            ArrayList<CourseSectionClass> class_have = new ArrayList<>();
+//            try(Connection conn_t = SQLDataSource.getInstance().getSQLConnection();
+//                PreparedStatement ps_t = conn_t.prepareStatement(sqlt))
+//            {
+//                ps_t.setInt(1, studentId);
+//                ResultSet rsst = ps_t.executeQuery();
+//                //int grade=rss_t.getInt("s.grade");
+//                while(rsst.next()){
+//                    CourseSectionClass courseSectionClass = new CourseSectionClass();
+//                    String day = rsst.getString("dayOfWeek");
+//                    switch (day) {
+//                        case "MONDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.MONDAY;
+//                            break;
+//                        case "TUESDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.TUESDAY;
+//                            break;
+//                        case "WEDNESDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.WEDNESDAY;
+//                            break;
+//                        case "THURSDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.THURSDAY;
+//                            break;
+//                        case "FRIDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.FRIDAY;
+//                            break;
+//                        case "SATURDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.SATURDAY;
+//                            break;
+//                        case "SUNDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.SUNDAY;
+//                            break;
+//                    }
+//                    courseSectionClass.classBegin = rsst.getShort("classBegin");
+//                    courseSectionClass.classEnd = rsst.getShort("classEnd");
+//                    courseSectionClass.weekList = sql_array_to_set(rsst.getArray("weeklist"));
+//                    class_have.add(courseSectionClass);
+//
+//                }
+//            }
+//            catch (SQLException et)
+//            {
+//                et.printStackTrace();
+//            }
+//            String sqltt="select ccs.dayOfWeek,ccs.weekList,ccs.classBegin,ccs.classBegin,c.name \n" +
+//                    "from courseSectionClass ccs\n" +
+//                    "join courseSection cs\n" +
+//                    "on cs.sectionid=ccs.sectionid\n" +
+//                    "join course c\n" +
+//                    "on c.courseid=cs.courseId";
+//
+//            ArrayList<CourseSectionClass> class_want = new ArrayList<>();
+//            try(Connection conn_tt = SQLDataSource.getInstance().getSQLConnection();
+//                PreparedStatement ps_tt = conn_tt.prepareStatement(sqltt))
+//            {
+//                ResultSet rsstt = ps_tt.executeQuery(sqltt);
+//                while(rsstt.next()){
+//                    CourseSectionClass courseSectionClass = new CourseSectionClass();
+//                    String day = rsstt.getString("dayOfWeek");
+//                    switch (day) {
+//                        case "MONDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.MONDAY;
+//                            break;
+//                        case "TUESDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.TUESDAY;
+//                            break;
+//                        case "WEDNESDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.WEDNESDAY;
+//                            break;
+//                        case "THURSDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.THURSDAY;
+//                            break;
+//                        case "FRIDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.FRIDAY;
+//                            break;
+//                        case "SATURDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.SATURDAY;
+//                            break;
+//                        case "SUNDAY":
+//                            courseSectionClass.dayOfWeek = DayOfWeek.SUNDAY;
+//                            break;
+//                    }
+//                    courseSectionClass.classBegin = rsstt.getShort("classBegin");
+//                    courseSectionClass.classEnd = rsstt.getShort("classEnd");
+//                    courseSectionClass.weekList = sql_array_to_set(rsstt.getArray("weeklist"));
+//                    class_want.add(courseSectionClass);
+//                }
+//            }
+//            catch (SQLException ett)
+//            {
+//                ett.printStackTrace();
+//            }
+//            for (CourseSectionClass this_class : class_want)
+//                for (CourseSectionClass old_class : class_have)
+//                    if(this_class.dayOfWeek.equals(old_class.dayOfWeek))
+//                        if(!(this_class.classEnd < old_class.classBegin || old_class.classEnd < this_class.classBegin))
+//                            for (Short now : this_class.weekList)
+//                                if(old_class.weekList.contains(now))
+//                                    COURSEID.add(this_class.id);
+//            s3="and c1.name not in (select c.name from  student_with_section sc\n" +
+//                    "join courseSection cs\n" +
+//                    "on cs.sectionid=sc.sectionid\n" +
+//                    "join course c\n" +
+//                    "on c.courseid=cs.courseId\n" +
+//                    "where sc.studentid=?) and ccs.classId not in (?) ";
+//            arr[3]=pos+1;
+//            arr[4]=pos+2;
+//            pos=pos+2;
+//        }
+//
+//        if(!ignorePassed){
+//            s4=" and p.courseid not in (select p.courseId from pf_grade p where p.studentid=? and p.grade='PASS'\n" +
+//                    "union\n" +
+//                    "select m.courseId from mark_grade m where m.studentid=? and m.grade>59) ";
+//            arr[5]=pos+1;
+//            arr[6]=pos+2;
+//            pos=pos+2;
+//        }
+//
+//        if(!ignoreMissingPrerequisites){
+//            s5=" and  p.courseid is not null ";
+//        }
+//
+//        if(searchCid!=null){
+//            s6=" and c1.courseid=searchCid ";
+//        }
+//        if(searchName!=null){
+//            s7=" and c1.name=searchName ";
+//        }
+//        if(searchInstructor!=null){
+//            s8=" and c3.instructorid in (select ins.instructorid from instructor ins where ins.fullname=searchInstructor) ";
+//        }
+//        if(searchDayOfWeek==DayOfWeek.SUNDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'SUNDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.MONDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'MONDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.TUESDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'TUESDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.WEDNESDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'WEDNESDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.THURSDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'THURSDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.FRIDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'FRIDAY\') ";
+//        else if(searchDayOfWeek==DayOfWeek.SATURDAY)
+//            s9=" and c3.courseid in(select cour.courseid from coursesectionclass cour where cour.dayofweek=\'SATURDAY\') ";
+//        if(searchClassTime!=null){
+//            s10=" and c3.courseid in(select cour.courseid from coursesectionclass cour where searchClassTime between cour.classbegin and cour.classend ";
+//        }
+//        sql=sql+s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+") and ( ";
+//        if(searchClassLocations!=null){
+//            //String st=" ";
+//            int cnt=0;
+//            int length=searchClassLocations.size();
+//            for(String location : searchClassLocations){
+//                if(cnt==(length-1)){
+//                    sql=sql+" c3.location="+location+" ) ";
+//                }
+//                else{
+//                    sql=sql+" c3.location="+location+" or ";
+//                }
+//                cnt++;
+//            }
+//
+//        }
+//        sql=sql+" order by c1.courseid,c1.name limit ? offset ? ;";
+//        try(Connection conn = SQLDataSource.getInstance().getSQLConnection();
+//            PreparedStatement ps = conn.prepareStatement(sql))
+//        {
+//            ps.setInt(1,semesterId);
+//            if(arr[1]!=0){
+//                ps.setInt(arr[1],studentId);
+//            }
+//            if(arr[3]!=0)
+//            {
+//                ps.setInt(arr[3],studentId);
+//                Integer[] new_course = new Integer[COURSEID.size()];
+//                for (int i = 0; i < new_course.length; i++)
+//                {
+//                    new_course[i] = COURSEID.get(i);
+//                }
+//                ps.setArray(arr[4],conn.createArrayOf("integer", new_course));
+//            }
+//            ps.setInt(pos+1,pageIndex);
+//            ps.setInt(pos+2,pageIndex*pageSize);
+//            ResultSet rss = ps.executeQuery();
+//            while (rss.next())
+//            {
+//                CourseSearchEntry courseSearchEntry=new CourseSearchEntry();
+//                courseSearchEntry.course.id=rss.getString("courseid");
+//                courseSearchEntry.course.classHour = rss.getInt("courseHour");
+//                courseSearchEntry.course.credit = rss.getInt("credit");
+//                courseSearchEntry.course.name = rss.getString("name");
+//                Course.CourseGrading courseGrading = Course.CourseGrading.PASS_OR_FAIL;
+//                if(rss.getString("grading").equals("HUNDRED_MARK_SCORE"))
+//                    courseGrading = Course.CourseGrading.HUNDRED_MARK_SCORE;
+//                courseSearchEntry.course.grading = courseGrading;
+//
+//                courseSearchEntry.section.id = rss.getInt("sectionid");
+//                courseSearchEntry.section.name = rss.getString("name");
+//                courseSearchEntry.section.totalCapacity = rss.getInt("totalcapacity");
+//                courseSearchEntry.section.leftCapacity = rss.getInt("leftcapacity");
+//                String sql2="select * from courseSectionClass cse \n" +
+//                        "join instructor i on cse.instructorId = i.instructorId \n" +
+//                        "join users u on u.userId=i.instructorId \n" +
+//                        "where cse.sectionid=?;";
+//                Set<CourseSectionClass> sectionClasses=new HashSet<>();
+//                try(Connection conn2 = SQLDataSource.getInstance().getSQLConnection();
+//                    PreparedStatement ps2 = conn.prepareStatement(sql2)){
+//                    ps2.setInt(1,courseSearchEntry.section.id);
+//                    ResultSet rss2 = ps2.executeQuery();
+//                    while (rss2.next()){
+//                        CourseSectionClass courseSectionClass=new CourseSectionClass();
+//                        courseSectionClass.id=rss2.getInt("calssid");
+//                        courseSectionClass.instructor.id=rss2.getInt("userid");
+//                        courseSectionClass.instructor.fullName=rss2.getString("fullname");
+//                        //courseSectionClass.dayOfWeek=rss2.getString("dayofweek");
+//                        //courseSectionClass.weekList=rss2.getString("weeklist");
+//                        courseSectionClass.classBegin=rss2.getShort("classbegin");
+//                        courseSectionClass.classEnd=rss2.getShort("classend");
+//                        courseSectionClass.location=rss2.getString("location");
+//                        sectionClasses.add(courseSectionClass);
+//                    }
+//                }
+//                catch (SQLException e2)
+//                {
+//                    e2.printStackTrace();
+//                }
+//                String sql3="select * from course ";
+//                List<String> ConflictCourseNames=new ArrayList<>();
+//                try(Connection conn3 = SQLDataSource.getInstance().getSQLConnection();
+//                    PreparedStatement ps3 = conn.prepareStatement(sql3)){
+//                    ResultSet rss3 = ps3.executeQuery();
+//                    while (rss3.next()){
+//                        String name;
+//                        name=rss3.getString("ConflictCourseNames");
+//
+//                        ConflictCourseNames.add(name);
+//                    }
+//                }
+//                catch (SQLException e3)
+//                {
+//                    e3.printStackTrace();
+//                }
+//                courseSearchEntry.sectionClasses=sectionClasses;
+//                courseSearchEntry.conflictCourseNames=ConflictCourseNames;
+//                courseSearchEntries.add(courseSearchEntry);
+//            }
+//        }
+//        catch (SQLException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return courseSearchEntries;
+//    }
+
 
 
     /**
@@ -401,22 +516,22 @@ public class StudentServiceImplement implements StudentService
      * @param sectionId the id of CourseSection
      * @return See {@link cn.edu.sustech.cs307.service.StudentService.EnrollResult}
      */
-    @Override//暂时没有判断 COURSE_CONFLICT_FOUND
+    @Override
     public EnrollResult enrollCourse(int studentId, int sectionId)
     {
         //EnrollResult.COURSE_NOT_FOUND
-        String str0 = "select * from coursesection where sectionid = ?";
+        String str0 = "select courseid from coursesection where sectionid = ?";
 
         //EnrollResult.ALREADY_ENROLLED
-        String str1 = "select * from student_with_section sws where sws.studentid = ? and sws.studentid = ?";
+        String str1 = "select sws.grade as grade from student_with_section sws where sws.studentid = ? and sws.sectionid = ?";
 
         //EnrollResult.ALREADY_PASSED
-        String str2 = "select sws.grade as grade\n" +
+        String str2 = "select sws.grade\n" +
                 "from student_with_section sws\n" +
-                "where sws.sectionid in (select sectionId\n" +
-                "                        from courseSection cs\n" +
-                "                        where cs.courseid = (select cs.courseId from courseSection cs where cs.sectionid = ?))\n" +
-                "  and sws.grade is not null";
+                "where studentid = ?\n" +
+                "  and sectionid in (select cs.sectionid\n" +
+                "                    from courseSection cs\n" +
+                "                    where cs.courseid = (select cS.courseId from courseSection cS where cS.sectionid = ?));";
 
         //EnrollResult.PREREQUISITES_NOT_FULFILLED
         String str3 = "select distinct cs.courseid as courseid from coursesection cs where sectionid = ?;";
@@ -429,12 +544,6 @@ public class StudentServiceImplement implements StudentService
                 "         join courseSection cs on cs.sectionId = sws.sectionid\n" +
                 "where cs.semesterId = (select cs1.semesterId from courseSection cs1 where cs1.sectionId = ?)\n" +
                 "and sws.studentid = ?";
-//        String str4 = "select c.courseid as courseid " +
-//                "from student_with_section sws " +
-//                "join courseSection cs on cs.sectionId = sws.sectionid " +
-//                "join course c on c.courseid = cs.courseId " +
-//                "where sws.studentid = ?";
-
 
         //时间冲突
         String str5 = "select classId, sectionId, instructorId, dayOfWeek, weekList, " +
@@ -449,21 +558,17 @@ public class StudentServiceImplement implements StudentService
                 "  and cs.semesterId = (select semesterId from courseSection where sectionId = ?)";
 
 
-
-        String sql0 = "select * from (select * from student_with_section s0 where s0.studentid=?) s\n" +
-                "join courseSection cs on s.sectionid = cS.sectionId\n" +
-                "where cs.courseId in (select c2.courseId from coursesection c2\n" +
-                "where c2.sectionid=?);";
-
         //EnrollResult.COURSE_IS_FULL
         String str7 = "select leftCapacity from courseSection where sectionid = ?";
 
         //EnrollResult result = EnrollResult.SUCCESS;
         String str_insert = "insert into student_with_section(studentid, sectionid, grade) values (?,?,?)";
+        String str_update = "update coursesection cs\n " +
+                "set leftcapacity = (select cS.leftCapacity - 1 from courseSection cS where cS.sectionId = ?)\n " +
+                "where cs.sectionId = ?;";
 
 
         try(Connection conn0 = SQLDataSource.getInstance().getSQLConnection();
-            //PreparedStatement stmt = conn0.prepareStatement(str);
             PreparedStatement stmt0 = conn0.prepareStatement(str0);
             PreparedStatement stmt1 = conn0.prepareStatement(str1);
             PreparedStatement stmt2 = conn0.prepareStatement(str2);
@@ -472,19 +577,18 @@ public class StudentServiceImplement implements StudentService
             PreparedStatement stmt5 = conn0.prepareStatement(str5);
             PreparedStatement stmt6 = conn0.prepareStatement(str6);
             PreparedStatement stmt7 = conn0.prepareStatement(str7);
-//            PreparedStatement stmt8 = conn0.prepareStatement(str8);
-//            PreparedStatement stmt9 = conn0.prepareStatement(str9);
 
             PreparedStatement insert = conn0.prepareStatement(str_insert);
-
-            PreparedStatement ps0 = conn0.prepareStatement(sql0))
+            PreparedStatement update = conn0.prepareStatement(str_update))
         {
 
             //EnrollResult.COURSE_NOT_FOUND
             stmt0.setInt(1, sectionId);
             ResultSet resultSet0 = stmt0.executeQuery();
+
             if(!resultSet0.next())
                 return EnrollResult.COURSE_NOT_FOUND;
+
             String courseid = resultSet0.getString("courseid");
 
             //EnrollResult.ALREADY_ENROLLED
@@ -496,7 +600,8 @@ public class StudentServiceImplement implements StudentService
 
 
             //EnrollResult.ALREADY_PASSED
-            stmt2.setInt(1, sectionId);
+            stmt2.setInt(1, studentId);
+            stmt2.setInt(2, sectionId);
             ResultSet resultSet2 = stmt2.executeQuery();
             while (resultSet2.next())
             {
@@ -510,9 +615,7 @@ public class StudentServiceImplement implements StudentService
 
             //EnrollResult.PREREQUISITES_NOT_FULFILLED
             stmt3.setInt(1, sectionId);
-            ResultSet resultSet3 = stmt3.executeQuery();
-            resultSet3.next();
-            //String courseid = resultSet3.getString("courseid");
+
             if(!passedPrerequisitesForCourse(studentId, courseid))
                 return EnrollResult.PREREQUISITES_NOT_FULFILLED;
 
@@ -631,7 +734,12 @@ public class StudentServiceImplement implements StudentService
             insert.setInt(1, studentId);
             insert.setInt(2, sectionId);
             insert.setInt(3, -2);
+
             insert.executeUpdate();
+            update.setInt(1, sectionId);
+            update.setInt(2, sectionId);
+            update.executeUpdate();
+
             return EnrollResult.SUCCESS;
         }
         catch (SQLException throwables)
@@ -715,7 +823,7 @@ public class StudentServiceImplement implements StudentService
             else if(grade == null)
             {
                 stmt1.setInt(3, -2);
-                //-2表示这学期杠选了课，但是还没成绩
+                //-2表示这学期刚选了课，但是还没成绩
             }
 
             stmt1.executeUpdate();
@@ -1008,7 +1116,6 @@ public class StudentServiceImplement implements StudentService
                 "    join coursesection cs on sws.sectionid = cs.sectionid\n" +
                 "    join course c on cs.courseid = c.courseid\n" +
                 "where studentid = ?";
-        //String sql1 = "select * from prerequisite where index = 1";
         try(Connection connection = SQLDataSource.getInstance().getSQLConnection();
             PreparedStatement stmt1 = connection.prepareStatement(sql1);
             PreparedStatement stmt2 = connection.prepareStatement(sql2))
@@ -1025,6 +1132,7 @@ public class StudentServiceImplement implements StudentService
                     return o2.index - o1.index;
                 }
             });
+
             while (resultSet.next())
             {
                 count++;
@@ -1036,12 +1144,9 @@ public class StudentServiceImplement implements StudentService
                 return true;
 
             ArrayList<String> have_course = new ArrayList<>();
-//            have_course.add("c");
-//            have_course.add("b");
-//            have_course.add("f");
-//            have_course.add("g");
             ArrayList<Integer> satisfy = new ArrayList<>();
             ArrayList<Integer> not_satisfy = new ArrayList<>();
+
             stmt2.setInt(1, studentId);
             ResultSet resultSet1 = stmt2.executeQuery();
             while (resultSet1.next())
@@ -1059,16 +1164,17 @@ public class StudentServiceImplement implements StudentService
                 }
                 if(node.relation.equals("and"))
                 {
-                    int count1 = 0;
+                    boolean ifornot = true;
                     for (int number : node.child)
                     {
-                        if(satisfy.contains(number))
-                            count1++;
+                        if(!satisfy.contains(number))
+                        {
+                            ifornot = false;
+                            break;
+                        }
                     }
-                    if(count1 == node.child.length)
+                    if(ifornot)
                         satisfy.add(node.index);
-                    else
-                        not_satisfy.add(node.index);
                 }
                 else if(node.relation.equals("or"))
                 {
@@ -1083,15 +1189,11 @@ public class StudentServiceImplement implements StudentService
                     }
                     if(ifornot)
                         satisfy.add(node.index);
-                    else
-                        not_satisfy.add(node.index);
                 }
                 else
                 {
                     if(have_course.contains(node.relation))
                         satisfy.add(node.index);
-                    else
-                        not_satisfy.add(node.index);
                 }
             }
             if(satisfy.contains(smallest))

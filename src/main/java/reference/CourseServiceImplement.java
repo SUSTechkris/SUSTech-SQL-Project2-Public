@@ -465,7 +465,6 @@ public class CourseServiceImplement implements CourseService
     {
         int index_can_use = index;
 
-        //String sql = "";
         int size = 1;
         if(nowPrerequisite instanceof AndPrerequisite)
             size = ((AndPrerequisite) nowPrerequisite).terms.size();
@@ -479,36 +478,34 @@ public class CourseServiceImplement implements CourseService
 
         if(nowPrerequisite instanceof AndPrerequisite)
         {
-            //size = ((AndPrerequisite) nowPrerequisite).terms.size();
-            //childs = new ArrayList<>(size);
             int now = 0;
             for (Prerequisite pre : ((AndPrerequisite) nowPrerequisite).terms)
             {
-                childs.add(index_can_use + 1);
-                index_can_use = constructPrere(pre, index_can_use + 1, main_course_id);
-                //childs.set(now++, index_can_use);
+                index_can_use++;
+                childs.add(index_can_use);
+                index_can_use = constructPrere(pre, index_can_use, main_course_id);
+
+//                childs.add(index_can_use + 1);
+//                index_can_use = constructPrere(pre, index_can_use + 1, main_course_id);
             }
             relation = "and";
         }
         else if(nowPrerequisite instanceof OrPrerequisite)
         {
-            //size = ((OrPrerequisite) nowPrerequisite).terms.size();
-            //childs = new ArrayList<>(size);
-            //childs = new int[size];
             int now = 0;
             for (Prerequisite pre : ((OrPrerequisite) nowPrerequisite).terms)
             {
-                childs.add(index_can_use + 1);
-                index_can_use = constructPrere(pre, index_can_use + 1, main_course_id);
-                //childs.set(now++, index_can_use);
-                //childs[now++] = index_can_use;
+                index_can_use++;
+                childs.add(index_can_use);
+                index_can_use = constructPrere(pre, index_can_use, main_course_id);
+//                childs.add(index_can_use + 1);
+//                index_can_use = constructPrere(pre, index_can_use + 1, main_course_id);
             }
             relation = "or";
         }
         else if(nowPrerequisite instanceof CoursePrerequisite)
         {
-            //childs = new ArrayList<>(1);
-            //childs.set(0, -1);
+            index_can_use++;
             childs.add(-1);
             relation = ((CoursePrerequisite) nowPrerequisite).courseID;
         }

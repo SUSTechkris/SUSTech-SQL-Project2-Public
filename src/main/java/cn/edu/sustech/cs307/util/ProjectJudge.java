@@ -99,8 +99,8 @@ public final class ProjectJudge {
                     evalResult.passCount.incrementAndGet();
                 }else
                     {
-                    System.out.println(expected + " " +result);
-                    System.out.println(i);
+                    //System.out.println(expected + " " +result);
+                    //System.out.println(i);
                 }
                 if (expected == StudentService.EnrollResult.SUCCESS) {
                     evalResult.succeedSections.add(enrollCourseParams.get(i));
@@ -112,6 +112,7 @@ public final class ProjectJudge {
 
     public StudentService.EnrollResult testEnrollCourse(List<Integer> params) {
         try {
+            //System.out.println(params.get(0) + " " + importer.mapSectionId(params.get(1)));
             return studentService.enrollCourse(params.get(0), importer.mapSectionId(params.get(1)));
         } catch (Throwable t) {
             t.printStackTrace();
@@ -253,9 +254,9 @@ public final class ProjectJudge {
 
 
         // 2. Test searchCourse1
-//        EvalResult searchCourse1 = testSearchCourses(searchCourse1Dir);
-//        System.out.println("Test search course 1: " + searchCourse1.passCount.get());
-//        System.out.printf("Test search course 1 time: %.2fs\n", searchCourse1.elapsedTimeNs.get() / 1000000000.0);
+        EvalResult searchCourse1 = testSearchCourses(searchCourse1Dir);
+        System.out.println("Test search course 1: " + searchCourse1.passCount.get());
+        System.out.printf("Test search course 1 time: %.2fs\n", searchCourse1.elapsedTimeNs.get() / 1000000000.0);
 
 
         // 3. Test enrollCourse1
@@ -291,10 +292,10 @@ public final class ProjectJudge {
 //        System.out.printf("Test course table 2 time: %.2fs\n", courseTables2.elapsedTimeNs.get() / 1000000000.0);
 //
 //
-//        // 8. Test searchCourse2
-//        EvalResult searchCourse2 = testSearchCourses(searchCourse2Dir);
-//        System.out.println("Test search course 2: " + searchCourse2.passCount.get());
-//        System.out.printf("Test search course 2 time: %.2fs\n", searchCourse2.elapsedTimeNs.get() / 1000000000.0);
+        // 8. Test searchCourse2
+        EvalResult searchCourse2 = testSearchCourses(searchCourse2Dir);
+        System.out.println("Test search course 2: " + searchCourse2.passCount.get());
+        System.out.printf("Test search course 2 time: %.2fs\n", searchCourse2.elapsedTimeNs.get() / 1000000000.0);
 
 
         // 9. Test enrollCourse2
